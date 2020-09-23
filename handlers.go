@@ -10,10 +10,12 @@ import (
 	"strings"
 
 	"cloud.google.com/go/firestore"
+	firebase "firebase.google.com/go"
 	guuid "github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/mitchellh/mapstructure"
 	"google.golang.org/api/iterator"
+	"google.golang.org/api/option"
 )
 
 ////  ORDER /////
@@ -30,7 +32,16 @@ func createOrder(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	// Get a Firestore client.
 	ctx := context.Background()
-	client := createClient(ctx)
+	sa := option.WithCredentialsFile("./avab011-firebase-adminsdk-22i2q-02404661c5.json")
+	app, err := firebase.NewApp(ctx, nil, sa)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	client, err := app.Firestore(ctx)
+	if err != nil {
+		log.Fatalln(err)
+	}
 	defer client.Close()
 
 	hotelid := guuid.New().String()
@@ -54,7 +65,7 @@ func createOrder(w http.ResponseWriter, r *http.Request) {
 	newOrder.PaymentID = paymentid
 	newOrder.HotelNameLC = strings.ToLower(newOrder.HotelName)
 
-	_, err := client.Collection("orders").Doc(docid).Set(ctx, newOrder)
+	_, err = client.Collection("orders").Doc(docid).Set(ctx, newOrder)
 	if err != nil {
 		// Handle any errors in an appropriate way, such as returning them.
 		fmt.Fprintf(w, "An error has occurred: %s", err)
@@ -95,7 +106,16 @@ func searchOrderByHotel(w http.ResponseWriter, r *http.Request) {
 
 	// Get a Firestore client.
 	ctx := context.Background()
-	client := createClient(ctx)
+	sa := option.WithCredentialsFile("./avab011-firebase-adminsdk-22i2q-02404661c5.json")
+	app, err := firebase.NewApp(ctx, nil, sa)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	client, err := app.Firestore(ctx)
+	if err != nil {
+		log.Fatalln(err)
+	}
 	defer client.Close()
 
 	query := new(HotelSearchQuery)
@@ -155,7 +175,16 @@ func searchOrderByCustomer(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	// Get a Firestore client.
 	ctx := context.Background()
-	client := createClient(ctx)
+	sa := option.WithCredentialsFile("./avab011-firebase-adminsdk-22i2q-02404661c5.json")
+	app, err := firebase.NewApp(ctx, nil, sa)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	client, err := app.Firestore(ctx)
+	if err != nil {
+		log.Fatalln(err)
+	}
 	defer client.Close()
 
 	query := new(HotelSearchQuery)
@@ -219,7 +248,16 @@ func getPaymentStatus(w http.ResponseWriter, r *http.Request) {
 
 	// Get a Firestore client.
 	ctx := context.Background()
-	client := createClient(ctx)
+	sa := option.WithCredentialsFile("./avab011-firebase-adminsdk-22i2q-02404661c5.json")
+	app, err := firebase.NewApp(ctx, nil, sa)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	client, err := app.Firestore(ctx)
+	if err != nil {
+		log.Fatalln(err)
+	}
 	defer client.Close()
 
 	if len(orderID) > 35 {
@@ -269,7 +307,16 @@ func makePayment(w http.ResponseWriter, r *http.Request) {
 
 	// Get a Firestore client.
 	ctx := context.Background()
-	client := createClient(ctx)
+	sa := option.WithCredentialsFile("./avab011-firebase-adminsdk-22i2q-02404661c5.json")
+	app, err := firebase.NewApp(ctx, nil, sa)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	client, err := app.Firestore(ctx)
+	if err != nil {
+		log.Fatalln(err)
+	}
 	defer client.Close()
 
 	if len(paymentID) > 35 {
