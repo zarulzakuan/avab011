@@ -4,6 +4,8 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	httpSwagger "github.com/swaggo/http-swagger"
+	_ "github.com/zarulzakuan/avab011/docs"
 )
 
 type Route struct {
@@ -26,20 +28,12 @@ func NewRouter() *mux.Router {
 			Handler(route.HandlerFunc)
 	}
 
+	router.PathPrefix("/").Handler(httpSwagger.WrapHandler)
+
 	return router
 }
 
 var routes = Routes{
-	Route{
-		"GET",
-		"/",
-		index,
-	},
-	Route{
-		"GET",
-		"/todos",
-		todoIndex,
-	},
 	Route{
 		"POST",
 		"/order",
@@ -57,12 +51,12 @@ var routes = Routes{
 	},
 	Route{
 		"GET",
-		"/paymentstatus",
+		"/paymentstatus/{orderid}",
 		getPaymentStatus,
 	},
 	Route{
 		"GET",
-		"/payment/{paymentid}",
+		"/makepayment/{paymentid}",
 		makePayment,
 	},
 }

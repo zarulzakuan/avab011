@@ -1,0 +1,172 @@
+basePath: /
+definitions:
+  main.HTTPResponse:
+    properties:
+      msg:
+        type: string
+      success:
+        type: boolean
+    type: object
+  main.HotelSearchQuery:
+    properties:
+      expression:
+        type: string
+      key:
+        type: string
+    type: object
+  main.Order:
+    properties:
+      amounttopay:
+        type: integer
+      checkindatetime:
+        type: string
+      checkoutdatetime:
+        type: string
+      customeremail:
+        type: string
+      customername:
+        type: string
+      customertel:
+        type: string
+      hotelname:
+        type: string
+      maxguests:
+        type: integer
+      roomname:
+        type: string
+    type: object
+  main.Payment:
+    properties:
+      orderid:
+        type: string
+      paid:
+        type: boolean
+      paymentid:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: zarulzakuan@gmail.com
+    name: Zarul Zakuan
+  description: Serice for managing hotel orders
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: AVA API
+  version: "1.0"
+paths:
+  /makepayment/{paymentid}:
+    get:
+      consumes:
+      - application/json
+      description: To pay the order if not yet paid
+      parameters:
+      - description: Payment ID
+        in: path
+        name: paymentid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.Order'
+      summary: Make Payment of an Order
+      tags:
+      - payment
+  /order:
+    post:
+      consumes:
+      - application/json
+      description: To receive a new Order and insert it in firestore
+      parameters:
+      - description: The input todo struct
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/main.Order'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.HTTPResponse'
+      summary: Create New Order
+      tags:
+      - order
+  /order/customer:
+    post:
+      consumes:
+      - application/json
+      description: To search orders by customer info (tel, email, name) from firestore
+      parameters:
+      - description: The input search struct
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/main.HotelSearchQuery'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/main.Order'
+            type: array
+      summary: Search order by Customer Information (tel, email, name)
+      tags:
+      - order
+  /order/hotel:
+    post:
+      consumes:
+      - application/json
+      description: To search orders by hotel name from firestore
+      parameters:
+      - description: The input search struct
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/main.HotelSearchQuery'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/main.Order'
+            type: array
+      summary: Search Order by Hotel Name
+      tags:
+      - order
+  /paymentstatus/{orderid}:
+    get:
+      consumes:
+      - application/json
+      description: To get the status of Payment
+      parameters:
+      - description: Order ID
+        in: path
+        name: orderid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.Payment'
+      summary: Get Payment Status of an Order
+      tags:
+      - payment
+swagger: "2.0"

@@ -1,0 +1,263 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "Serice for managing hotel orders",
+        "title": "AVA API",
+        "termsOfService": "http://swagger.io/terms/",
+        "contact": {
+            "name": "Zarul Zakuan",
+            "email": "zarulzakuan@gmail.com"
+        },
+        "license": {
+            "name": "Apache 2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+        },
+        "version": "1.0"
+    },
+    "host": "localhost:8080",
+    "basePath": "/",
+    "paths": {
+        "/makepayment/{paymentid}": {
+            "get": {
+                "description": "To pay the order if not yet paid",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "payment"
+                ],
+                "summary": "Make Payment of an Order",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Payment ID",
+                        "name": "paymentid",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/main.Order"
+                        }
+                    }
+                }
+            }
+        },
+        "/order": {
+            "post": {
+                "description": "To receive a new Order and insert it in firestore",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "order"
+                ],
+                "summary": "Create New Order",
+                "parameters": [
+                    {
+                        "description": "The input todo struct",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.Order"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/main.HTTPResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/order/customer": {
+            "post": {
+                "description": "To search orders by customer info (tel, email, name) from firestore",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "order"
+                ],
+                "summary": "Search order by Customer Information (tel, email, name)",
+                "parameters": [
+                    {
+                        "description": "The input search struct",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.HotelSearchQuery"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/main.Order"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/order/hotel": {
+            "post": {
+                "description": "To search orders by hotel name from firestore",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "order"
+                ],
+                "summary": "Search Order by Hotel Name",
+                "parameters": [
+                    {
+                        "description": "The input search struct",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.HotelSearchQuery"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/main.Order"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/paymentstatus/{orderid}": {
+            "get": {
+                "description": "To get the status of Payment",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "payment"
+                ],
+                "summary": "Get Payment Status of an Order",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Order ID",
+                        "name": "orderid",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/main.Payment"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "main.HTTPResponse": {
+            "type": "object",
+            "properties": {
+                "msg": {
+                    "type": "string"
+                },
+                "success": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "main.HotelSearchQuery": {
+            "type": "object",
+            "properties": {
+                "expression": {
+                    "type": "string"
+                },
+                "key": {
+                    "type": "string"
+                }
+            }
+        },
+        "main.Order": {
+            "type": "object",
+            "properties": {
+                "amounttopay": {
+                    "type": "integer"
+                },
+                "checkindatetime": {
+                    "type": "string"
+                },
+                "checkoutdatetime": {
+                    "type": "string"
+                },
+                "customeremail": {
+                    "type": "string"
+                },
+                "customername": {
+                    "type": "string"
+                },
+                "customertel": {
+                    "type": "string"
+                },
+                "hotelname": {
+                    "type": "string"
+                },
+                "maxguests": {
+                    "type": "integer"
+                },
+                "roomname": {
+                    "type": "string"
+                }
+            }
+        },
+        "main.Payment": {
+            "type": "object",
+            "properties": {
+                "orderid": {
+                    "type": "string"
+                },
+                "paid": {
+                    "type": "boolean"
+                },
+                "paymentid": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}

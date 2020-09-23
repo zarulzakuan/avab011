@@ -16,37 +16,16 @@ import (
 	"google.golang.org/api/iterator"
 )
 
-func index(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Welcome!")
-}
-
-func todoIndex(w http.ResponseWriter, r *http.Request) {
-	// Get a Firestore client.
-	ctx := context.Background()
-	client := createClient(ctx)
-	defer client.Close()
-
-	todos := Todos{
-		Todo{Name: "Write presentation"},
-		Todo{Name: "Host meetup"},
-	}
-	iter := client.Collection("farmasi").Documents(ctx)
-	for {
-		doc, err := iter.Next()
-		if err == iterator.Done {
-			break
-		}
-		if err != nil {
-			log.Fatalf("Failed to iterate: %v", err)
-		}
-		fmt.Println(doc.Data())
-	}
-	if err := json.NewEncoder(w).Encode(todos); err != nil {
-		panic(err)
-	}
-}
-
 ////  ORDER /////
+// CreateOrder godoc
+// @Summary Create New Order
+// @Description To receive a new Order and insert it in firestore
+// @Tags order
+// @Accept  json
+// @Param data body Order true "The input todo struct"
+// @Produce  json
+// @Success 200 {object} HTTPResponse
+// @Router /order [post]
 func createOrder(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	// Get a Firestore client.
@@ -62,6 +41,8 @@ func createOrder(w http.ResponseWriter, r *http.Request) {
 	//post data
 
 	newOrder := new(Order)
+	newPayment := new(Payment)
+	resp := new(HTTPResponse)
 	_ = json.NewDecoder(r.Body).Decode(newOrder)
 
 	hotelNameBreakOut := strings.Fields(strings.ToLower(newOrder.HotelName))
@@ -78,17 +59,45 @@ func createOrder(w http.ResponseWriter, r *http.Request) {
 		// Handle any errors in an appropriate way, such as returning them.
 		fmt.Fprintf(w, "An error has occurred: %s", err)
 	}
-	fmt.Fprintln(w, "Order Created")
+
+	newPayment.OrderID = docid
+	newPayment.Paid = false
+
+	_, err = client.Collection("payment").Doc(paymentid).Set(ctx, newPayment)
+	if err != nil {
+		// Handle any errors in an appropriate way, such as returning them.
+		fmt.Fprintf(w, "An error has occurred: %s", err)
+	}
+
+	resp.Success = true
+	resp.Msg = docid
+
+	e, err := json.Marshal(resp)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Fprintf(w, "%v", string(e))
 
 }
 
+// SearchOrderByHotel godoc
+// @Summary Search Order by Hotel Name
+// @Description To search orders by hotel name from firestore
+// @Tags order
+// @Accept  json
+// @Param data body HotelSearchQuery true "The input search struct"
+// @Produce  json
+// @Success 200 {array} Order
+// @Router /order/hotel [post]
 func searchOrderByHotel(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
 	// Get a Firestore client.
 	ctx := context.Background()
 	client := createClient(ctx)
 	defer client.Close()
 
-	w.Header().Set("Content-Type", "application/json")
 	query := new(HotelSearchQuery)
 	_ = json.NewDecoder(r.Body).Decode(query)
 
@@ -133,13 +142,22 @@ func searchOrderByHotel(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "%v", string(e))
 }
 
+// SearchOrderByCustomer godoc
+// @Summary Search order by Customer Information (tel, email, name)
+// @Description To search orders by customer info (tel, email, name) from firestore
+// @Tags order
+// @Accept  json
+// @Param data body HotelSearchQuery true "The input search struct"
+// @Produce  json
+// @Success 200 {array} Order
+// @Router /order/customer [post]
 func searchOrderByCustomer(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	// Get a Firestore client.
 	ctx := context.Background()
 	client := createClient(ctx)
 	defer client.Close()
 
-	w.Header().Set("Content-Type", "application/json")
 	query := new(HotelSearchQuery)
 	_ = json.NewDecoder(r.Body).Decode(query)
 
@@ -185,12 +203,95 @@ func searchOrderByCustomer(w http.ResponseWriter, r *http.Request) {
 }
 
 ////  PAYMENT  /////
+// GetPaymentStatus godoc
+// @Summary Get Payment Status of an Order
+// @Description To get the status of Payment
+// @Tags payment
+// @Accept  json
+// @Param orderid path string true "Order ID"
+// @Produce  json
+// @Success 200 {object} Payment
+// @Router /paymentstatus/{orderid} [get]
 func getPaymentStatus(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "getPaymentStatus")
+	vars := mux.Vars(r)
+	orderID := vars["orderid"]
+	payment := new(Payment)
+
+	// Get a Firestore client.
+	ctx := context.Background()
+	client := createClient(ctx)
+	defer client.Close()
+
+	if len(orderID) > 35 {
+		//find payment status
+		queryResult := client.Collection("payment").Where("orderid", "==", orderID).Documents(ctx)
+		for {
+			doc, err := queryResult.Next()
+			if err == iterator.Done {
+				break
+			}
+			if err != nil {
+				fmt.Fprintln(w, "ERROR")
+			}
+
+			err = mapstructure.Decode(doc.Data(), payment)
+			if err != nil {
+				// error
+			}
+			payment.PaymentID = doc.Ref.ID
+
+		}
+		e, err := json.Marshal(payment)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		fmt.Fprintf(w, "%v", string(e))
+	} else {
+		fmt.Fprintf(w, "")
+	}
+
 }
 
+// MakePayment godoc
+// @Summary Make Payment of an Order
+// @Description To pay the order if not yet paid
+// @Tags payment
+// @Accept  json
+// @Param paymentid path string true "Payment ID"
+// @Produce  json
+// @Success 200 {object} Order
+// @Router /makepayment/{paymentid} [get]
 func makePayment(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	paymentID := vars["paymentid"]
-	fmt.Fprintln(w, "makePayment:", paymentID)
+	resp := new(HTTPResponse)
+
+	// Get a Firestore client.
+	ctx := context.Background()
+	client := createClient(ctx)
+	defer client.Close()
+
+	if len(paymentID) > 35 {
+		_, err := client.Collection("payment").Doc(paymentID).Set(ctx, map[string]interface{}{
+			"paid": true,
+		}, firestore.MergeAll)
+		if err != nil {
+			// Handle any errors in an appropriate way, such as returning them.
+			log.Printf("An error has occurred: %s", err)
+		}
+		resp.Success = true
+		resp.Msg = "Payment Success"
+
+	} else {
+		resp.Success = false
+		resp.Msg = "Payment Failed"
+	}
+
+	e, err := json.Marshal(resp)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Fprintf(w, "%v", string(e))
 }

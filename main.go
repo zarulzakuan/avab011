@@ -8,10 +8,20 @@ import (
 	"cloud.google.com/go/firestore"
 )
 
+// @title AVA API
+// @version 1.0
+// @description Serice for managing hotel orders
+// @termsOfService http://swagger.io/terms/
+// @contact.name Zarul Zakuan
+// @contact.email zarulzakuan@gmail.com
+// @license.name Apache 2.0
+// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
+// @host localhost:8080
+// @BasePath /
 func main() {
 
 	router := NewRouter()
-
+	log.Println("Running server...")
 	log.Fatal(http.ListenAndServe(":8080", router))
 }
 
@@ -23,7 +33,5 @@ func createClient(ctx context.Context) *firestore.Client {
 	if err != nil {
 		log.Fatalf("Failed to create client: %v", err)
 	}
-	// Close client when done with
-	// defer client.Close()
 	return client
 }
