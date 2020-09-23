@@ -7,14 +7,15 @@ import (
 )
 
 type Route struct {
-	Name        string
 	Method      string
 	Pattern     string
 	HandlerFunc http.HandlerFunc
 }
 
+// Routes List of all routes
 type Routes []Route
 
+// NewRouter New router, duhh
 func NewRouter() *mux.Router {
 
 	router := mux.NewRouter().StrictSlash(true)
@@ -22,7 +23,6 @@ func NewRouter() *mux.Router {
 		router.
 			Methods(route.Method).
 			Path(route.Pattern).
-			Name(route.Name).
 			Handler(route.HandlerFunc)
 	}
 
@@ -31,45 +31,38 @@ func NewRouter() *mux.Router {
 
 var routes = Routes{
 	Route{
-		"Index",
 		"GET",
 		"/",
-		Index,
+		index,
 	},
 	Route{
-		"TodoIndex",
 		"GET",
 		"/todos",
-		TodoIndex,
+		todoIndex,
 	},
 	Route{
-		"GetFarmasiList",
-		"GET",
-		"/farmasi/{negeri}",
-		GetFarmasi,
-	},
-	Route{
-		"GetHospitalList",
-		"GET",
-		"/hospital/{negeri}",
-		GetHospital,
-	},
-	Route{
-		"GetUserInfo",
-		"GET",
-		"/user/{userid}",
-		GetUserInfo,
-	},
-	Route{
-		"UpdateUserInfo",
-		"PUT",
-		"/user/{userid}",
-		UpdateUserInfo,
-	},
-	Route{
-		"CreateUserInfo",
 		"POST",
-		"/user/{userid}",
-		CreateUserInfo,
+		"/order",
+		createOrder,
+	},
+	Route{
+		"POST",
+		"/order/hotel",
+		searchOrderByHotel,
+	},
+	Route{
+		"POST",
+		"/order/customer",
+		searchOrderByCustomer,
+	},
+	Route{
+		"GET",
+		"/paymentstatus",
+		getPaymentStatus,
+	},
+	Route{
+		"GET",
+		"/payment/{paymentid}",
+		makePayment,
 	},
 }
